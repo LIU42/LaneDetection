@@ -1,6 +1,6 @@
 # Lane Detection
 
-**一个简单高效的车道线检测模型。**
+**一个简单高效的车道线检测模型。** [[English]](https://github.com/LIU42/LaneDetection/blob/main/README-en.md)
 
 ## 项目简介
 
@@ -161,5 +161,3 @@ num-workers: 8                                # DataLoader 加载子进程数
 - 观察效果展示中图 6 以及其他的模型预测结果图可以看出，模型在预测曲率较大的车道线和距离较远处的车道线上表现得不够理想。V2 版本的模型正在实验中，旨在解决或缓解上述问题，期望能够达到预期的效果。
 
 - 基于 ONNX Runtime 的模型 C++ 推理部署程序正在开发中。
-
-
