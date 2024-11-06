@@ -17,24 +17,26 @@ class LaneDataset(data.Dataset):
         return len(self.images)
 
     def __getitem__(self, index):
-        label = self.labels[index]
         image = self.images[index]
-        image = self.open(image)
+        label = self.labels[index]
 
-        return self.transform(image), label
+        return self.convert_image(image), torch.tensor(label, dtype=torch.int64)
 
     def load_annotations(self):
         with open(f'{self.root}/annotations.json', 'r') as annotations:
-            return json.load(annotations)
+            return annotations.readlines()
 
     def setup(self):
         annotations = self.load_annotations()
 
-        for image, points in annotations.items():
-            samples = torch.tensor(points['samples'], dtype=torch.int64)
+        for annotation in annotations:
+            sample = json.loads(annotation)
+
+            image = sample['image']
+            label = sample['label']
 
             self.images.append(image)
-            self.labels.append(torch.where(samples > 0, samples // 8, 80))
+            self.labels.append(label)
 
-    def open(self, image_name):
-        return Image.open(f'{self.root}/images/{image_name}')
+    def convert_image(self, name):
+        return self.transform(Image.open(f'{self.root}/images/{name}'))

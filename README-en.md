@@ -88,35 +88,44 @@ datasets/
     └── annotations.json
 ```
 
-Where annotations.json is the lane line position annotation file in the dataset division where it is located, its format and description are as follows.
+Where annotations.json is the lane line location annotation file for the dataset segmentation in which it is located. annotations.json is a multi-line JSON format file, and the format and description of each line is as follows.
 
 ```json5
 {
     /*
-     * The names of the keys correspond to the names of all image files in the images/ directory.
+     * “image” is the filename of the image, which corresponds to the name of the image file in the images/ directory.
      */
-    "1.jpg": {
-        /*
-         * The “samples” is a marker for the x-axis coordinates of the lane line points, fixed to a 4x12 two-dimensional array.
-         * The first dimensional representation model is able to detect a total of 4 lane lines.
-         * In order, they are the second left, first left, first right, and second right lane lines, respectively, centered on the vehicle.
-         * For example, the effect shows red, green, blue and yellow lane lines from left to right in Figure 3.
-         * The second dimension represents the values of the x-axis coordinates of the lane lines sampled from top to bottom according to the y-axis coordinates in “anchors”.
-         * Marked -1 if the lane line does not exist at that position.
-         */
-        "samples": [
-            [...],
-            [...],
-            [...],
-            [...]
-        ],
-        /*
-         * The “anchors” is a sequence of y-axis sampling coordinates for the lane line area, fixed to an array of length 12.
-         * This key is not required in the annotation file, but it is necessary to ensure that the sequence of y-axis sampling coordinates is the same for all images in the entire dataset.
-         */
-        "anchors": [...]
-    },
-    ...
+    "image": "1.jpg",
+    /*
+     * “samples” is the index for the horizontal positions of the grid where the lane lines are located, fixed as a 4x12 two-dimensional array.
+     * The first dimension represents the model's ability to detect a total of 4 lane lines.
+     * In order, they are the second left, first left, first right, and second right lane lines, respectively, centered on the vehicle.
+     * For example, the effect shows red, green, blue and yellow lane lines from left to right in Figure 3.
+     * The second dimension represents the position index of the grid where the lane lines are located, sampled from top to bottom according to the y-axis coordinates in “anchors”.
+     * The value is in the range [0, 79] and is marked as 80 if no lane line exists at this position.
+     */
+    "label": [
+        [...],
+        [...],
+        [...],
+        [...]
+    ],
+    /*
+     * The “samples” is the x-axis coordinates of the lane line points, fixed as a 4x12 two-dimensional array.
+     * The value of each position corresponds to the “label” one by one.
+     * This item is not necessary for model training and is only used for visual presentation of results.
+     */
+    "samples": [
+        [...],
+        [...],
+        [...],
+        [...]
+    ],
+    /*
+     * “anchors” is a sequence of y-axis sampled coordinates of the lane line area, fixed as an array of length 12.
+     * 这一项对于模型训练同样不是必需的。
+     */
+    "anchors": [...]
 }
 ```
 
