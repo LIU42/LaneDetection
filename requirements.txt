@@ -1,0 +1,4 @@
+torch~=2.5.1
+PyYAML~=6.0
+torchvision~=0.20.1
+pillow~=10.4.0

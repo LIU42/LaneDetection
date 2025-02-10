@@ -1,0 +1,5 @@
+device: "cuda"
+checkpoint-path: "checkpoints/best-ckpt3.pt"
+batch-size: 32
+num-workers: 8
+use-amp: true
