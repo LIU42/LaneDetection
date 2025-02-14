@@ -2,7 +2,6 @@ device: "cuda"
 num-epochs: 200
 num-workers: 8
 batch-size: 32
-
 learning-rate: 0.0005
 weight-decay: 0.0001
 

@@ -34,8 +34,8 @@ normal_transform = transforms.Compose([
 
 mask_transform = transforms.Compose([
     transforms.Resize((28, 80)),
-    transforms.Grayscale(num_output_channels=1),
     transforms.ToTensor(),
+    transforms.Grayscale(num_output_channels=1),
 ])
 
 train_transform = normal_transform

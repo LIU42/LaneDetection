@@ -19,8 +19,8 @@ image_transform = transforms.Compose([
 
 mask_transform = transforms.Compose([
     transforms.Resize((28, 80)),
-    transforms.Grayscale(num_output_channels=1),
     transforms.ToTensor(),
+    transforms.Grayscale(num_output_channels=1),
 ])
 
 dataset = LaneDataset('datasets/test', image_transform=image_transform, label_transform=mask_transform)
