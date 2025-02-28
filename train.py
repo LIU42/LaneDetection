@@ -25,11 +25,13 @@ augment_transform = transforms.Compose([
     transforms.RandomAdjustSharpness(0.1),
     transforms.RandomGrayscale(0.2),
     transforms.RandomErasing(scale=(0.05, 0.2), ratio=(0.5, 2.0)),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
 ])
 
 normal_transform = transforms.Compose([
     transforms.Resize((224, 640)),
     transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
 ])
 
 mask_transform = transforms.Compose([
@@ -74,7 +76,7 @@ optimizer = optim.Adam(model.parameters(), lr=configs['learning-rate'], weight_d
 if configs['use-amp']:
     scaler = torch.GradScaler()
 
-print(f'\n---------- Training Start at {str(device).upper()} ----------\n')
+print(f'\n---------- Training start at {str(device).upper()} ----------\n')
 
 for epoch in range(configs['num-epochs']):
     model.train()
@@ -101,7 +103,7 @@ for epoch in range(configs['num-epochs']):
 
         train_average_loss += loss.item()
 
-        print(f'\rBatch Loss: {loss:.5f} [{index}/{train_dataloader_size}]', end='')
+        print(f'\rBatch loss: {loss:.5f} [{index}/{train_dataloader_size}]', end='')
 
     model.eval()
     train_average_loss /= train_dataloader_size
@@ -129,9 +131,9 @@ for epoch in range(configs['num-epochs']):
 
         torch.save(model.state_dict(), last_path)
 
-    print(f'\tEpoch: {epoch:<6} Loss: {train_average_loss:<10.5f} IoU: {valid_average_iou:<8.3f}')
+    print(f'\tepoch: {epoch:<6} loss: {train_average_loss:<10.5f} IoU: {valid_average_iou:<8.3f}')
 
-print('\n---------- Training Finish ----------\n')
+print('\n---------- Training finished ----------\n')
 
 print(f'Best IoU: {best_average_iou:.3f}')
 print(f'Last IoU: {valid_average_iou:.3f}')

@@ -20,7 +20,10 @@ class LaneDataset(data.Dataset):
         image = self.images[index]
         label = self.labels[index]
 
-        return self.convert_image(image), self.convert_label(label).long()
+        image = self.load_image(image)
+        label = self.load_label(label)
+
+        return self.image_transform(image), self.label_transform(label).long()
 
     def load_annotations(self):
         with open(f'{self.root}/annotations.json', 'r') as annotations:
@@ -38,8 +41,8 @@ class LaneDataset(data.Dataset):
             self.images.append(image)
             self.labels.append(label)
 
-    def convert_image(self, name):
-        return self.image_transform(Image.open(f'{self.root}/images/{name}').crop((0, 136, 640, 360)))
+    def load_image(self, name):
+        return Image.open(f'{self.root}/images/{name}').crop((0, 136, 640, 360))
 
-    def convert_label(self, name):
-        return self.label_transform(Image.open(f'{self.root}/labels/{name}').crop((0, 17, 80, 45)))
+    def load_label(self, name):
+        return Image.open(f'{self.root}/labels/{name}').crop((0, 17, 80, 45))

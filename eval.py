@@ -12,9 +12,11 @@ from dataset import LaneDataset
 with open('configs/eval.yaml', 'r') as configs:
     configs = yaml.load(configs, Loader=yaml.FullLoader)
 
+
 image_transform = transforms.Compose([
     transforms.Resize((224, 640)),
     transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
 ])
 
 mask_transform = transforms.Compose([
@@ -26,7 +28,7 @@ mask_transform = transforms.Compose([
 dataset = LaneDataset('datasets/test', image_transform=image_transform, label_transform=mask_transform)
 dataset_size = len(dataset)
 
-dataloader = data.DataLoader(dataset, configs['batch-size'], num_workers=configs['num-workers'])
+dataloader = data.DataLoader(dataset, batch_size=configs['batch-size'], shuffle=False, num_workers=configs['num-workers'])
 dataloader_size = len(dataloader)
 
 device = torch.device(configs['device'])
@@ -40,7 +42,7 @@ fn_count = 0
 
 average_iou = 0.0
 
-print(f'\n---------- Evaluation Start At: {str(device).upper()} ----------\n')\
+print(f'\n---------- Evaluation start at: {str(device).upper()} ----------\n')
 
 with torch.no_grad():
     model.load_state_dict(torch.load(configs['checkpoint-path'], map_location=device, weights_only=True))
@@ -68,10 +70,17 @@ with torch.no_grad():
 
 average_iou /= dataset_size
 
-p_metric = tp_count / (tp_count + fp_count)
-r_metric = tp_count / (tp_count + fn_count)
+precision = metrics.precision(
+    tp_count=tp_count,
+    fp_count=fp_count,
+)
 
-f1_score = 2 * p_metric * r_metric / (p_metric + r_metric)
+recall = metrics.recall(
+    tp_count=tp_count,
+    fn_count=fn_count,
+)
 
-print(f'\tPrecision: {p_metric:<8.3f} Recall: {r_metric:<8.3f} F1-score: {f1_score:<8.3f} IoU: {average_iou:.3f}')
-print(f'\n---------- Evaluation End ----------\n')
+f1_score = metrics.f1_score(precision=precision, recall=recall)
+
+print(f'\tprecision: {precision:<8.3f} recall: {recall:<8.3f} f1-score: {f1_score:<8.3f} IoU: {average_iou:.3f}')
+print(f'\n---------- Evaluation end ----------\n')
