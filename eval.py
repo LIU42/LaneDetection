@@ -1,4 +1,5 @@
 import torch
+import tqdm
 import yaml
 import metrics
 
@@ -10,13 +11,16 @@ from dataset import LaneDataset
 
 
 with open('configs/eval.yaml', 'r') as configs:
-    configs = yaml.load(configs, Loader=yaml.FullLoader)
+    configs = yaml.load(configs, Loader=yaml.SafeLoader)
+
+
+def format(name, value):
+    print(f'{name:<12} {value:.4f}')
 
 
 image_transform = transforms.Compose([
     transforms.Resize((224, 640)),
     transforms.ToTensor(),
-    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
 ])
 
 mask_transform = transforms.Compose([
@@ -33,22 +37,21 @@ dataloader_size = len(dataloader)
 
 device = torch.device(configs['device'])
 
-model = LaneNet()
+model = LaneNet(pretrained=False)
 model = model.to(device)
-
-tp_count = 0
-fp_count = 0
-fn_count = 0
-
-average_iou = 0.0
 
 print(f'\n---------- Evaluation start at: {str(device).upper()} ----------\n')
 
 with torch.no_grad():
+    tp_count = 0
+    fp_count = 0
+    fn_count = 0
+    total_iou = 0.0
+
     model.load_state_dict(torch.load(configs['checkpoint-path'], map_location=device, weights_only=True))
     model.eval()
 
-    for index, (images, labels) in enumerate(dataloader, start=1):
+    for images, labels in tqdm.tqdm(dataloader, desc='Inference progress', ncols=80):
         images = images.to(device)
         labels = labels.to(device)
 
@@ -64,23 +67,18 @@ with torch.no_grad():
         fp_count += ((predicts == 1) & (labels == 0)).sum().item()
         fn_count += ((predicts == 0) & (labels == 1)).sum().item()
 
-        average_iou += metrics.iou(predicts.flatten(1, 3), labels.flatten(1, 3)).sum().item()
+        total_iou += metrics.iou(predicts.flatten(1, 3), labels.flatten(1, 3)).sum().item()
 
-        print(f'\rProgress: [{index}/{dataloader_size}]', end=' ')
+    precision = metrics.precision(tp_count, fp_count)
+    format('Precision', precision)
 
-average_iou /= dataset_size
+    recall = metrics.recall(tp_count, fn_count)
+    format('Recall', recall)
 
-precision = metrics.precision(
-    tp_count=tp_count,
-    fp_count=fp_count,
-)
+    f1_score = metrics.f1_score(precision, recall)
+    format('F1-score', f1_score)
 
-recall = metrics.recall(
-    tp_count=tp_count,
-    fn_count=fn_count,
-)
+    average_iou = total_iou / dataset_size
+    format('IoU', average_iou)
 
-f1_score = metrics.f1_score(precision=precision, recall=recall)
-
-print(f'\tprecision: {precision:<8.3f} recall: {recall:<8.3f} f1-score: {f1_score:<8.3f} IoU: {average_iou:.3f}')
-print(f'\n---------- Evaluation end ----------\n')
+print(f'\n---------- Evaluation finished ----------\n')
