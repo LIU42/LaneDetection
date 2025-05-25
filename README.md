@@ -40,7 +40,7 @@
 
 首先需要安装本项目依赖的各种库和工具包。
 
-```shellsession
+```shell-session
 pip install -r requirements.txt
 ```
 
@@ -48,7 +48,7 @@ pip install -r requirements.txt
 
 本项目的训练数据集格式如下，分为训练集、验证集和测试集，所有的图像文件放入 images 目录下，分割掩码图像文件为保证数值的准确性请使用 png 格式并放入 labels 目录下。
 
-```shellsession
+```shell-session
 datasets/
 ├── test/
 │   ├── images/
@@ -111,5 +111,3 @@ datasets/
 ### 模型评估
 
 模型训练完成后，运行 eval.py 进行评估。这将会分别计算模型在测试集上的各种检测精度指标。默认的配置文件及字段含义同上。
-
-
