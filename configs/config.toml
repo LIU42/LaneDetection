@@ -1,0 +1,12 @@
+learning-rate = 0.0005
+batch-size = 32
+num-epochs = 200
+num-workers = 8
+weight-decay = 0.0001
+
+load-pretrained = true
+load-checkpoint = false
+
+load-checkpoint-path = "checkpoints/best-ckpt1.pt"
+best-checkpoint-path = "checkpoints/best-ckpt1.pt"
+last-checkpoint-path = "checkpoints/last-ckpt1.pt"
