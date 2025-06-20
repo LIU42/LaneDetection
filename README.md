@@ -100,6 +100,7 @@ datasets/
 | batch-size           | 训练及评估批大小。                                                                               |
 | learning-rate        | 模型训练学习率。                                                                                |
 | weight-decay         | 模型训练权重衰减。                                                                               |
+| log-interval         | 日志输出频率。                                                                                 |
 | load-pretrained      | 是否使用预训练参数初始化模型权重。                                                                       |
 | load-checkpoint      | 是否加载 checkpoint 继续训练，若为 true 则从 load-path 加载模型权重，覆盖 load-pretrained 值，反之则使用初始化模型权重开始训练。 |
 | load-checkpoint-path | 训练初始模型的加载路径，同时也为待评估模型加载路径。                                                              |

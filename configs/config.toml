@@ -4,6 +4,7 @@ num-epochs = 200
 num-workers = 8
 weight-decay = 0.0001
 
+log-interval = 10
 load-pretrained = true
 load-checkpoint = false
 

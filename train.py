@@ -1,6 +1,6 @@
-import torch
+import datetime
 import toml
-import tqdm
+import torch
 
 import torch.nn as nn
 import torch.optim as optim
@@ -10,6 +10,10 @@ from torch.utils.data import DataLoader
 
 from models import LaneDetectionModel
 from dataset import LaneDetectionDataset
+
+
+def current_time():
+    return datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
 
 def calculate_iou(sequence1, sequence2, eps=1e-6):
@@ -68,6 +72,8 @@ valid_dataloader_size = len(valid_dataloader)
 best_iou_score = 0.0
 last_iou_score = 0.0
 
+log_interval = configs['log-interval']
+
 model = LaneDetectionModel(pretrained=configs['load-pretrained'])
 model = model.cuda()
 
@@ -84,9 +90,8 @@ print(f'\n---------- training start ----------\n')
 
 for epoch in range(num_epochs):
     model.train()
-    train_loss = 0.0
 
-    for images, labels in tqdm.tqdm(train_dataloader, ncols=80):
+    for batch, (images, labels) in enumerate(train_dataloader, start=1):
         images = images.cuda()
         labels = labels.cuda()
 
@@ -96,30 +101,35 @@ for epoch in range(num_epochs):
         loss.backward()
         optimizer.step()
 
-        train_loss += loss.item()
+        if batch % log_interval == 0:
+            print(f'{current_time()} [train] [{epoch:03d}] [{batch:04d}/{train_dataloader_size:04d}] loss: {loss.item():.5f}')
 
     model.eval()
-    train_loss /= train_dataloader_size
 
     with torch.no_grad():
         all_scores = torch.zeros(0).cuda()
         all_labels = torch.zeros(0).cuda()
 
-        for images, labels in tqdm.tqdm(valid_dataloader, ncols=80):
+        all_scores = []
+        all_labels = []
+
+        for batch, (images, labels) in enumerate(valid_dataloader, start=1):
             images = images.cuda()
             labels = labels.cuda()
 
-            scores = model(images)
-            scores = scores.sigmoid()
+            scores = model(images).sigmoid()
 
             scores = scores.flatten()
             labels = labels.flatten()
 
-            all_scores = torch.cat([all_scores, scores])
-            all_labels = torch.cat([all_labels, labels])
+            all_scores.append(scores)
+            all_labels.append(labels)
 
-        all_scores = all_scores.cpu()
-        all_labels = all_labels.cpu()
+            if batch % log_interval == 0:
+                print(f'{current_time()} [valid] [{epoch:03d}] [{batch:04d}/{valid_dataloader_size:04d}]')
+
+        all_scores = torch.cat(all_scores).cpu()
+        all_labels = torch.cat(all_labels).cpu()
 
         iou_score = calculate_iou((all_scores > 0.5).int(), all_labels).item()
 
@@ -130,7 +140,7 @@ for epoch in range(num_epochs):
         last_iou_score = iou_score
         torch.save(model.state_dict(), last_checkpoint_path)
 
-    print(f'\nepoch: {epoch + 1}/{num_epochs:<6} loss: {train_loss:<10.5f} IoU: {iou_score:<8.3f}\n')
+    print(f'{current_time()} [valid] [{epoch:03d}] IoU: {iou_score:.4f}')
 
 print(f'best IoU: {best_iou_score:.3f}')
 print(f'last IoU: {last_iou_score:.3f}')

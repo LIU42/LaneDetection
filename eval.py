@@ -1,6 +1,5 @@
 import torch
 import toml
-import tqdm
 
 import sklearn.metrics as metrics
 import torchvision.transforms as transforms
@@ -43,30 +42,34 @@ dataloader_size = len(dataloader)
 model = LaneDetectionModel(pretrained=False)
 model = model.cuda()
 
+log_interval = configs['log-interval']
+
 print(f'\n---------- evaluation start ----------\n')
 
 with torch.no_grad():
-    all_scores = torch.zeros(0).cuda()
-    all_labels = torch.zeros(0).cuda()
+    all_scores = []
+    all_labels = []
 
     model.load_state_dict(torch.load(configs['load-checkpoint-path'], map_location='cuda', weights_only=True))
     model.eval()
 
-    for images, labels in tqdm.tqdm(dataloader, ncols=80):
+    for batch, (images, labels) in enumerate(dataloader, start=1):
         images = images.cuda()
         labels = labels.cuda()
 
-        scores = model(images)
-        scores = scores.sigmoid()
+        scores = model(images).sigmoid()
 
         scores = scores.flatten()
         labels = labels.flatten()
 
-        all_scores = torch.cat([all_scores, scores])
-        all_labels = torch.cat([all_labels, labels])
+        all_scores.append(scores)
+        all_labels.append(labels)
 
-    scores = all_scores.cpu()
-    labels = all_labels.cpu()
+        if batch % log_interval == 0:
+            print(f'[valid] [{batch:04d}/{dataloader_size:04d}]')
+
+    scores = torch.cat(all_scores).cpu()
+    labels = torch.cat(all_labels).cpu()
 
     auc_score = metrics.roc_auc_score(labels, scores)
 
